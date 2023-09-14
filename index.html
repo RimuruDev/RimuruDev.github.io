@@ -1,10 +1,28 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta http-equiv="refresh" content="0; url=https://RimuruDev.github.io/RimuruTempest_en.pdf">
-    <title>Rimuru Tempest resume.</title>
+    <meta charset="utf-8">
+    <title id="page-title">Выбор языка</title>
 </head>
 <body>
-<p>If the redirection does not work, tap <a href="https://RimuruDev.github.io/RimuruTempest_en.pdf">здесь</a>.</p>
+<h1 id="resume-header">Выберите язык резюме</h1>
+<ul>
+    <li><a href="RimuruTempest_ru.pdf">Русский</a></li>
+    <li><a href="RimuruTempest_en.pdf">English</a></li>
+</ul>
+
+<script>
+    var userLanguage = navigator.language || navigator.userLanguage;
+    var titleElement = document.getElementById("page-title");
+    var headerElement = document.getElementById("resume-header");
+
+    if (userLanguage.startsWith("ru")) {
+        titleElement.innerText = "Выбор языка";
+        headerElement.innerText = "Выберите язык резюме";
+    } else {
+        titleElement.innerText = "Language Selection";
+        headerElement.innerText = "Choose Resume Language";
+    }
+</script>
 </body>
 </html>
