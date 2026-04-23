@@ -1,0 +1,63 @@
+name: Sync app-ads.txt from CAS
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 */6 * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-app-ads
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Fetch and compare app-ads.txt
+        id: sync
+        run: |
+          set -euo pipefail
+
+          MAIN_URL="https://raw.githubusercontent.com/cleveradssolutions/App-ads.txt/main/app-ads.txt"
+          MASTER_URL="https://raw.githubusercontent.com/cleveradssolutions/App-ads.txt/master/app-ads.txt"
+
+          if curl -fsSL "$MAIN_URL" -o app-ads.txt.new; then
+            echo "source_url=$MAIN_URL" >> "$GITHUB_OUTPUT"
+          elif curl -fsSL "$MASTER_URL" -o app-ads.txt.new; then
+            echo "source_url=$MASTER_URL" >> "$GITHUB_OUTPUT"
+          else
+            echo "Failed to download app-ads.txt from both main and master branches." >&2
+            exit 1
+          fi
+
+          if cmp -s app-ads.txt app-ads.txt.new; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            rm -f app-ads.txt.new
+          else
+            mv app-ads.txt.new app-ads.txt
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Commit and push changes
+        if: steps.sync.outputs.changed == 'true'
+        run: |
+          set -euo pipefail
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add app-ads.txt
+          git commit -m "chore: sync app-ads.txt from CAS"
+          git push
+
+      - name: No changes
+        if: steps.sync.outputs.changed != 'true'
+        run: echo "app-ads.txt is already up to date."
